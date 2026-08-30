@@ -1,0 +1,29 @@
+# Secrets - never commit these
+.env
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Exports produced by the app
+*.xlsx
+*.pdf
+dashboard.json
+!sample_dashboard.json
+
+# Vendored on first run by the canvas component (from the installed plotly package)
+components/*/plotly.min.js
+
+# Tooling / OS
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

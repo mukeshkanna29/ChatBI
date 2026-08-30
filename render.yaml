@@ -1,0 +1,20 @@
+# One-click deploy on Render: New > Blueprint > point at this repo.
+services:
+  - type: web
+    name: chatbi
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      # Set the keys you need in the Render dashboard rather than here.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false

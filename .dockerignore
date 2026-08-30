@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.streamlit/secrets.toml
+.git/
+.gitignore
+*.md
+!README.md
+*.xlsx
+*.pdf
+# Regenerated at runtime from the installed plotly package - keeps ~5 MB out of the image
+components/*/plotly.min.js

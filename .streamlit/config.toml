@@ -1,0 +1,19 @@
+# App chrome. Chart colours are chosen at runtime in the sidebar
+# (Appearance > Chart palette) and are independent of this theme.
+
+[theme]
+base = "light"
+primaryColor = "#2E6F9E"              # buttons, toggles, focus rings
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F5F9"  # sidebar, cards, expanders
+textColor = "#0F172A"
+linkColor = "#2E6F9E"
+borderColor = "#E2E8F0"
+
+[server]
+# Raise this if you need to load files larger than 500 MB.
+maxUploadSize = 500
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false

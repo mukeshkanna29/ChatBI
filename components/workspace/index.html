@@ -1,0 +1,346 @@
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg:        #f2f4f7;
+    --panel:     #ffffff;
+    --bar:       #1e2430;
+    --bar-2:     #2a3040;
+    --line:      #e3e7ee;
+    --line-2:    #d5dae3;
+    --text:      #101828;
+    --muted:     #667085;
+    --muted-2:   #98a2b3;
+    --accent:    #2f6fed;
+    --accent-sf: #eaf1fe;
+    --danger:    #d92d20;
+    --radius:    8px;
+    --pane-l:    236px;
+    --pane-r:    272px;
+    --bar-h:     118px;
+    --tabs-h:    38px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    font-size: 13px; overflow: hidden; -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+
+  #app { display: flex; flex-direction: column; height: 100vh; }
+
+  /* ---------- app bar ---------- */
+  .appbar {
+    height: var(--bar-h); flex: 0 0 auto; background: var(--bar); color: #eef1f6;
+    display: flex; align-items: center; gap: 12px; padding: 0 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 650;
+           letter-spacing: -.01em; font-size: 14px; }
+  .brand .dot { width: 9px; height: 9px; border-radius: 2px; background: var(--accent); }
+  .rname {
+    background: transparent; border: 1px solid transparent; color: #eef1f6;
+    padding: 5px 8px; border-radius: 6px; font-size: 13px; width: 210px;
+  }
+  .rname:hover { border-color: #3a4152; }
+  .rname:focus { outline: none; border-color: var(--accent); background: #171c26; }
+
+  .ask { flex: 1 1 auto; display: flex; gap: 10px; align-items: stretch;
+         max-width: 1080px; margin: 0 auto; padding: 12px 0; }
+  .ask-wrap {
+    flex: 1 1 auto; display: flex; align-items: flex-start; gap: 11px;
+    border-radius: 12px; border: 1px solid #39404f; background: #171c26;
+    padding: 12px 14px; transition: border-color .12s, box-shadow .12s;
+    position: relative;
+  }
+  .ask-wrap:focus-within {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,111,237,.22);
+  }
+  .ask-wrap.loading { border-color: var(--accent); }
+  .ai-mark {
+    width: 20px; height: 20px; flex: 0 0 auto; color: #7ea6ff; margin-top: 3px;
+    transition: opacity .15s;
+  }
+  .ai-mark.spin { animation: dm-spin 1s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { .ai-mark.spin { animation: none; opacity: .5; } }
+  @keyframes dm-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  /* A textarea, not an input: real prompts name several sheets across lines. */
+  .ask textarea {
+    flex: 1 1 auto; border: 0; background: transparent; color: #eef1f6;
+    font-size: 14.5px; font-family: inherit; line-height: 1.55; resize: none;
+    height: 80px; padding: 0; overflow-y: auto;
+  }
+  .ask textarea::placeholder { color: #6b7488; }
+  .ask textarea:focus { outline: none; }
+  .ask textarea:disabled { opacity: .55; }
+  .ask-side { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+  .ask-side .btn { height: 30px; border-radius: 8px; justify-content: center; }
+
+  .btn {
+    height: 30px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--line-2);
+    background: var(--panel); cursor: pointer; font-size: 12.5px; font-weight: 520;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .btn:hover { background: #f7f9fc; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #2560d8; }
+  .btn.ghost { background: transparent; border-color: #39404f; color: #d7dceb; }
+  .btn.ghost:hover { background: #2a3040; }
+  .btn.sm { height: 26px; padding: 0 9px; font-size: 12px; }
+
+  .themepick { display: flex; align-items: center; gap: 7px; }
+  .themepick label { font-size: 11.5px; color: #8d97ab; }
+  .themepick select {
+    height: 30px; border-radius: 7px; background: #171c26; color: #d7dceb;
+    border: 1px solid #39404f; padding: 0 8px; font-size: 12.5px; font-family: inherit;
+    cursor: pointer;
+  }
+  .themepick select:focus { outline: none; border-color: var(--accent); }
+
+  /* ---------- body ---------- */
+  .body { flex: 1 1 auto; display: flex; min-height: 0; }
+  .pane {
+    background: var(--panel); flex: 0 0 auto; display: flex; flex-direction: column;
+    min-height: 0; overflow: hidden;
+  }
+  .pane.left  { width: var(--pane-l); border-right: 1px solid var(--line); }
+  .pane.right { width: var(--pane-r); border-left: 1px solid var(--line); }
+  .pane-title {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .075em; text-transform: uppercase;
+    color: var(--muted-2); padding: 11px 12px 7px; flex: 0 0 auto;
+  }
+  .pane-scroll { overflow-y: auto; padding: 0 8px 10px; }
+  .pane-split { border-top: 1px solid var(--line); }
+
+  .ds { display: flex; align-items: center; gap: 7px; padding: 6px 8px; border-radius: 6px;
+        cursor: pointer; font-size: 12.5px; }
+  .ds:hover { background: #f4f7fb; }
+  .ds.on { background: var(--accent-sf); color: #1a4fbf; font-weight: 600; }
+  .ds .meta { margin-left: auto; color: var(--muted-2); font-size: 11px; font-weight: 400; }
+
+  .field { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 5px;
+           cursor: grab; font-size: 12.5px; }
+  .field:hover { background: #f4f7fb; }
+  .field.sel { background: var(--accent-sf); }
+  .glyph { width: 15px; height: 15px; border-radius: 3px; flex: 0 0 auto; font-size: 9px;
+           font-weight: 800; display: grid; place-items: center; color: #fff; }
+  .g-num  { background: #2f8a5b; }
+  .g-date { background: #9a6bd8; }
+  .g-txt  { background: #8a94a6; }
+
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 0 8px 10px; }
+  .viz {
+    aspect-ratio: 1; border: 1px solid var(--line); border-radius: 6px; background: #fff;
+    cursor: pointer; display: grid; place-items: center; padding: 4px;
+  }
+  .viz:hover { border-color: var(--accent); background: var(--accent-sf); }
+  .viz svg { width: 20px; height: 20px; }
+  .hint { color: var(--muted); font-size: 11.5px; padding: 0 12px 10px; line-height: 1.45; }
+
+  /* ---------- canvas ---------- */
+  .stage { flex: 1 1 auto; min-width: 0; position: relative; overflow: auto; padding: 14px; }
+  .busy {
+    position: absolute; inset: 0; z-index: 80; display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+    background: rgba(242,244,247,.82); backdrop-filter: blur(1px);
+  }
+  .busy.on { display: flex; }
+  .busy .ring {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid rgba(47,111,237,.2); border-top-color: var(--accent);
+    animation: dm-spin 0.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .busy .ring { animation: none; border-top-color: rgba(47,111,237,.2); opacity: .6; }
+  }
+  .busy .msg { font-size: 13.5px; font-weight: 550; color: var(--text); }
+  .busy .sub { font-size: 12px; color: var(--muted); max-width: 320px; text-align: center; }
+  #canvas { position: relative; min-height: 100%; }
+  #canvas.grid {
+    background-size: var(--cw) var(--ch);
+    background-image: linear-gradient(to right, rgba(47,111,237,.07) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(47,111,237,.07) 1px, transparent 1px);
+  }
+  .tile {
+    position: absolute; background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 1px 2px rgba(16,24,40,.05);
+  }
+  .tile:hover { border-color: var(--line-2); }
+  .tile.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent),
+              0 6px 18px rgba(47,111,237,.14); }
+  .tile.drag, .tile.size { box-shadow: 0 12px 28px rgba(16,24,40,.2); opacity: .97; z-index: 60; }
+
+  .thead {
+    display: flex; align-items: center; gap: 6px; padding: 6px 9px; flex: 0 0 auto;
+    border-bottom: 1px solid var(--line); cursor: grab; background: #fcfdff;
+  }
+  .tile.drag .thead { cursor: grabbing; }
+  .thead .t { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden;
+              text-overflow: ellipsis; }
+  .thead .x { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity .1s; }
+  .tile:hover .thead .x, .tile.sel .thead .x { opacity: 1; }
+  .iconbtn { width: 20px; height: 20px; border: 0; background: transparent; border-radius: 4px;
+             cursor: pointer; color: var(--muted); display: grid; place-items: center;
+             font-size: 13px; line-height: 1; }
+  .iconbtn:hover { background: #eef1f6; color: var(--text); }
+  .iconbtn.del:hover { background: #fee4e2; color: var(--danger); }
+
+  .tbody { flex: 1 1 auto; min-height: 0; position: relative; }
+  .plot { width: 100%; height: 100%; }
+  .kpi { height: 100%; padding: 14px 16px; display: flex; flex-direction: column;
+         justify-content: center; }
+  .kpi .rule { height: 3px; width: 30px; border-radius: 2px; margin-bottom: 9px; }
+  .kpi .lab { font-size: 12px; color: var(--muted); }
+  .kpi .val { font-size: 27px; font-weight: 660; letter-spacing: -.02em; margin-top: 1px; }
+  .kpi .sub { font-size: 11px; color: var(--muted-2); margin-top: 3px; }
+  .txt { height: 100%; padding: 14px 16px; overflow: auto; white-space: pre-wrap;
+         font-size: 13px; line-height: 1.55; }
+  .bad { padding: 14px; color: var(--danger); font-size: 12px; }
+
+  .grip { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px;
+          cursor: nwse-resize; opacity: 0; }
+  .tile:hover .grip, .tile.sel .grip { opacity: 1; }
+  .grip::after { content: ""; position: absolute; right: 3px; bottom: 3px; width: 7px;
+          height: 7px; border-right: 2px solid var(--muted-2);
+          border-bottom: 2px solid var(--muted-2); }
+
+  /* The empty sheet leads with the model doing the work, not an empty canvas. */
+  .blank { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; }
+  .blank .in { text-align: center; color: var(--muted); max-width: 560px; }
+  .blank .spark { width: 30px; height: 30px; color: var(--accent); margin-bottom: 10px; }
+  .blank h3 { margin: 0 0 6px; font-size: 18px; color: var(--text); font-weight: 650;
+              letter-spacing: -.015em; }
+  .blank p { margin: 0 0 16px; font-size: 13px; line-height: 1.55; }
+  .blank .go {
+    height: 38px; padding: 0 20px; border-radius: 9px; border: 0; cursor: pointer;
+    background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .blank .go:hover { background: #2560d8; }
+  .blank .go:disabled { opacity: .45; cursor: not-allowed; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center;
+           margin-top: 16px; }
+  .chip {
+    background: var(--panel); border: 1px solid var(--line-2); border-radius: 999px;
+    padding: 6px 13px; font-size: 12px; cursor: pointer; color: var(--text);
+    max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .chip:hover { border-color: var(--accent); background: var(--accent-sf);
+                color: #1a4fbf; }
+  .blank .alt { margin-top: 16px; font-size: 12px; color: var(--muted-2); }
+
+  /* ---------- format pane ---------- */
+  .fld { padding: 7px 10px 0; }
+  .fld label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .fld input[type=text], .fld select, .fld input[type=number] {
+    width: 100%; height: 28px; border: 1px solid var(--line-2); border-radius: 6px;
+    padding: 0 8px; font-size: 12.5px; background: #fff; color: var(--text);
+  }
+  .fld input:focus, .fld select:focus { outline: none; border-color: var(--accent); }
+  .fld input[type=color] { width: 100%; height: 28px; padding: 2px; border: 1px solid var(--line-2);
+    border-radius: 6px; background: #fff; cursor: pointer; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .empty-fmt { color: var(--muted); font-size: 12px; padding: 12px; line-height: 1.5; }
+
+  /* ---------- sheet tabs ---------- */
+  .tabs {
+    height: var(--tabs-h); flex: 0 0 auto; background: var(--panel);
+    border-top: 1px solid var(--line); display: flex; align-items: stretch; padding: 0 8px;
+    gap: 2px; overflow-x: auto;
+  }
+  .tab {
+    display: flex; align-items: center; gap: 6px; padding: 0 13px; cursor: pointer;
+    font-size: 12.5px; border-top: 2px solid transparent; color: var(--muted);
+    white-space: nowrap; background: transparent; border-left: 0; border-right: 0;
+    border-bottom: 0;
+  }
+  .tab:hover { background: #f6f8fb; color: var(--text); }
+  .tab.on { color: var(--text); font-weight: 600; border-top-color: var(--accent);
+            background: #f6f9ff; }
+  .tab .k { opacity: 0; font-size: 14px; line-height: 1; color: var(--muted-2); }
+  .tab.on .k, .tab:hover .k { opacity: .8; }
+  .tab .k:hover { color: var(--danger); }
+  .tabadd { padding: 0 11px; border: 0; background: transparent; cursor: pointer;
+            color: var(--muted); font-size: 16px; }
+  .tabadd:hover { color: var(--accent); }
+  .tabs .spacer { flex: 1 1 auto; }
+  .tabs .lay { display: flex; align-items: center; gap: 6px; padding-right: 4px; }
+  .tabs .lay select { height: 24px; border: 1px solid var(--line-2); border-radius: 5px;
+                      font-size: 11.5px; background: #fff; }
+</style>
+
+<div id="app">
+  <div class="appbar">
+    <div class="brand"><span class="dot"></span><span>ChatBI</span></div>
+    <input class="rname" id="rname" spellcheck="false" />
+    <div class="ask">
+      <div class="ask-wrap">
+        <svg class="ai-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2.6l1.9 4.9 4.9 1.9-4.9 1.9L12 16.2l-1.9-4.9L5.2 9.4l4.9-1.9L12 2.6z"/>
+          <path d="M18.6 14.6l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9.9-2.4z" opacity=".7"/>
+          <path d="M5.1 15.2l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z" opacity=".45"/>
+        </svg>
+        <textarea id="ask" rows="3" spellcheck="false"
+          placeholder="Describe the report you want, sheet by sheet:&#10;Sheet 1: revenue and profit KPIs with a monthly trend.&#10;Sheet 2: sales by region and by category."></textarea>
+      </div>
+      <div class="ask-side">
+        <button class="btn primary" id="askgo">Build</button>
+        <button class="btn ghost" id="askadd">Add here</button>
+        <button class="btn ghost sm" id="askrec" title="Ignores the box above - ChatBI designs the whole report itself, choosing how many sheets and what goes on each.">Recommend for me</button>
+      </div>
+    </div>
+    <div class="themepick">
+      <label for="themeSel">Theme</label>
+      <select id="themeSel" title="Restyles and re-arranges the sheet"></select>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="pane left">
+      <div class="pane-title">Data</div>
+      <div class="pane-scroll" id="datasets"></div>
+      <div class="pane-title pane-split">Fields</div>
+      <div class="pane-scroll" id="fields" style="flex:1 1 auto;"></div>
+      <div class="pane-title pane-split">Visuals</div>
+      <div class="gallery" id="gallery"></div>
+      <div class="hint" id="galleryHint"></div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="busy" id="busy">
+        <div class="ring"></div>
+        <div class="msg" id="busyMsg">Working&hellip;</div>
+        <div class="sub" id="busySub">This can take up to a couple of minutes on a free-tier model.</div>
+      </div>
+      <div id="canvas"></div>
+      <div class="blank" id="blank" style="display:none">
+        <div class="in">
+          <svg class="spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2.6l1.9 4.9 4.9 1.9-4.9 1.9L12 16.2l-1.9-4.9L5.2 9.4l4.9-1.9L12 2.6z"/>
+            <path d="M18.6 14.6l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9.9-2.4z" opacity=".7"/>
+          </svg>
+          <h3 id="blankTitle">Let ChatBI build this for you</h3>
+          <p id="blankBody">It reads your columns and lays out the sheets - KPIs, charts
+             and arrangement - in one go.</p>
+          <button class="go" id="blankGo">
+            Build my report
+          </button>
+          <div class="chips" id="blankChips"></div>
+          <div class="alt">Or pick a field on the left and click a visual to place it
+            yourself.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane right">
+      <div class="pane-title">Format</div>
+      <div class="pane-scroll" id="format" style="flex:1 1 auto;"></div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<script src="./plotly.min.js"></script>
+<script src="./workspace.js"></script>
