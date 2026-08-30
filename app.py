@@ -3712,6 +3712,9 @@ SHELL_CSS = """
     background: #1e2430 !important;
     border-right: 1px solid #11151d;
     width: 340px !important;
+    transform: none !important;
+    margin-left: 0 !important;
+    visibility: visible !important;
   }
   section[data-testid="stSidebar"] .block-container,
   section[data-testid="stSidebar"] > div {padding-top: 14px !important;}

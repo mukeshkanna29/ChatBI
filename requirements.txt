@@ -1,5 +1,5 @@
 # --- Core (required) ---------------------------------------------------------
-streamlit>=1.49,<2    # 1.49 introduced width="stretch" on charts/buttons/dataframes
+streamlit==1.62.0      # pinned exact: sidebar toggle DOM placement is version-sensitive
 pandas>=2.1
 numpy>=1.26
 plotly>=5.20,<7
