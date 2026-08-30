@@ -970,7 +970,7 @@ def check_connection(
             provider, model, api_key,
             "Reply with the single word: ready.",
             "Are you there?",
-            ollama_host, max_tokens=16,
+            ollama_host, max_tokens=64,
         )
     except LLMError as exc:
         return False, str(exc)
