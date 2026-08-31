@@ -3095,8 +3095,10 @@ def render_model_settings() -> dict[str, Any]:
     ollama_host = "http://localhost:11434"
     if spec["needs_key"]:
         stored = get_secret(spec["key_env"])
+        key_name = "dm_key_" + provider
+        st.session_state.setdefault(key_name, stored)
         api_key = st.text_input(
-            "API key", value=stored, type="password", key="dm_key_" + provider,
+            "API key", type="password", key=key_name,
             help="Kept in this browser session only - never written to disk.",
         )
         if stored and api_key == stored:
@@ -3112,9 +3114,9 @@ def render_model_settings() -> dict[str, Any]:
     )
     model = picked
     if picked == "Custom...":
-        model = st.text_input(
-            "Custom model id", value=spec["models"][0], key="dm_model_custom_" + provider
-        )
+        custom_key = "dm_model_custom_" + provider
+        st.session_state.setdefault(custom_key, spec["models"][0])
+        model = st.text_input("Custom model id", key=custom_key)
     if live:
         st.caption("{} models available from {}.".format(len(live), provider))
     st.caption(spec["note"])
@@ -3250,6 +3252,7 @@ def render_data_panel() -> None:
     with st.expander(
         "Data  -  {} loaded".format(loaded) if loaded else "Data  -  add your first dataset",
         expanded=loaded == 0,
+        key="dm_menu_data_expander",
     ):
         if loaded >= DATASET_ADVISORY:
             st.caption(
@@ -3803,7 +3806,10 @@ def render_menu(config: dict[str, Any], frames: dict[str, pd.DataFrame]) -> None
                 render_filter_controls(get_dataset(active_dataset()), active_dataset())
 
         st.markdown('<div class="menu-h">AI model</div>', unsafe_allow_html=True)
-        with st.expander("Provider and key", expanded=not config.get("api_key")):
+        with st.expander(
+            "Provider and key", expanded=not config.get("api_key"),
+            key="dm_menu_ai_expander",
+        ):
             render_model_settings()
 
         st.markdown('<div class="menu-h">Sheet theme</div>', unsafe_allow_html=True)
